@@ -9,7 +9,6 @@ import {
   deleteDoc,
   doc,
   onSnapshot,
-  updateDoc,
 } from "firebase/firestore";
 import { ArrowRight } from "lucide-react";
 

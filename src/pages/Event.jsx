@@ -1,22 +1,17 @@
 // src/pages/Event.jsx
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import TeamCard from "../components/TeamCard";
 import FinishDialog from "../components/FinishDialog";
 import Header from "../components/Header";
-import {
-  ArrowLeft,
-  ArrowRight,
-  Flag,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { Flag, ChevronLeft, ChevronRight, Trophy } from "lucide-react";
+import confetti from "canvas-confetti";
+import ScoreTable from "../components/ScoreTable";
 
 export default function Event() {
   const { id: eventId } = useParams();
-
   const [eventData, setEventData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [recentChanges, setRecentChanges] = useState({});
@@ -37,6 +32,31 @@ export default function Event() {
     };
     fetchEvent();
   }, [eventId]);
+
+  useEffect(() => {
+    if (eventData?.finished) {
+      confetti({
+        particleCount: 1000,
+        spread: 100,
+        startVelocity: 50,
+        gravity: 1, // higher gravity to push down
+        ticks: 1000, // longer animation
+        origin: { y: 0.1 },
+        scalar: 1.2,
+      });
+    }
+  }, [eventData?.finished]);
+  useEffect(() => {
+    const activeRef = roundRefs.current[currentRound];
+    const container = selectorRef.current;
+    if (activeRef && container) {
+      activeRef.scrollIntoView({
+        behavior: "smooth",
+        inline: "center",
+        block: "nearest",
+      });
+    }
+  }, [currentRound]);
 
   const flashChange = (teamIndex, value, type) => {
     setRecentChanges((prev) => ({ ...prev, [teamIndex]: { value, type } }));
@@ -102,107 +122,125 @@ export default function Event() {
     const roundEntries = eventData.rounds?.[roundKey] || [];
     return roundEntries
       .filter((entry) => entry.teamIndex === teamIndex)
-      .reduce((acc, entry) => {
-        return entry.type === "add" ? acc + entry.points : acc - entry.points;
-      }, 0);
+      .reduce(
+        (acc, entry) =>
+          entry.type === "add" ? acc + entry.points : acc - entry.points,
+        0
+      );
   };
 
   if (loading) return <div className="p-6 text-center">Loading event...</div>;
 
   return (
-    <div className="p-4 sm:p-6 max-w-2xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-3xl mx-auto min-h-screen">
       <Header />
 
-      {/* Round Title */}
-      <div className="text-center text-2xl font-bold mb-3 text-zinc-800">
-        Round {currentRound}
-      </div>
-
-      {/* Navigation Buttons */}
-      <div className="flex justify-between items-center gap-3 mb-4">
-        <button
-          onClick={goToPreviousRound}
-          className="flex-1 flex justify-center items-center gap-2 bg-blue-600 text-white py-3 rounded-lg font-medium text-base hover:bg-blue-700 shadow transition"
-        >
-          <ChevronLeft size={20} />
-          Previous
-        </button>
-        <button
-          onClick={goToNextRound}
-          className="flex-1 flex justify-center items-center gap-2 bg-blue-600 text-white py-3 rounded-lg font-medium text-base hover:bg-blue-700 shadow transition"
-        >
-          Next
-          <ChevronRight size={20} />
-        </button>
-      </div>
-
-      {/* Round Selector */}
-      <div
-        ref={selectorRef}
-        className="flex overflow-x-auto scrollbar-hide space-x-2 pb-4 mb-6 px-1"
-      >
-        {[...Array(45)].map((_, i) => {
-          const roundNum = i + 1;
-          const hasData = eventData.rounds?.[`round_${roundNum}`]?.length > 0;
-          return (
-            <button
-              key={roundNum}
-              ref={(el) => (roundRefs.current[roundNum] = el)}
-              onClick={() => setCurrentRound(roundNum)}
-              className={`px-3 py-2 min-w-[44px] text-sm rounded-md font-semibold border transition text-center ${
-                currentRound === roundNum
-                  ? "bg-yellow-500 text-white border-yellow-600"
-                  : hasData
-                  ? "bg-gray-300 text-black border-gray-400"
-                  : "bg-gray-200 text-gray-600 border-gray-300"
-              }`}
-            >
-              {roundNum}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Team Cards */}
-      <div className="space-y-4">
-        {eventData.teams.map((team, index) => (
-          <TeamCard
-            key={index}
-            index={index}
-            team={{ ...team, score: getRoundScore(index) }}
-            recentChange={recentChanges[index]}
-            onAdd={addPoints}
-            onRemove={removePoints}
-            disabled={eventData.finished}
-          />
-        ))}
-      </div>
-
-      {/* Leaderboard */}
-      <div className="mt-10 text-center">
-        <h3 className="text-xl font-semibold mb-2 text-zinc-800">
-          Leaderboard
-        </h3>
-        <ul className="space-y-1 text-sm sm:text-base text-zinc-700">
-          {[...eventData.teams]
-            .sort((a, b) => b.score - a.score)
-            .map((team, i) => (
-              <li key={i}>
-                {i + 1}. {team.name} – {team.score} pts
-              </li>
-            ))}
-        </ul>
-      </div>
-
-      {/* Finish Event */}
       {!eventData.finished && (
-        <button
-          onClick={() => setShowFinishPrompt(true)}
-          className="mt-10 w-full bg-red-600 text-white py-3 rounded-xl text-lg font-semibold hover:bg-red-700 shadow-lg flex items-center justify-center gap-2"
-        >
-          <Flag size={20} />
-          Finish Event
-        </button>
+        <>
+          <div className="text-center text-2xl font-bold mb-3 text-[#1F2937]">
+            Round {currentRound}
+          </div>
+
+          <div className="flex justify-between items-center gap-3 mb-4">
+            <button
+              onClick={goToPreviousRound}
+              className="flex-1 flex justify-center items-center gap-2 bg-[#0EAD69] text-white py-3 rounded-lg font-medium text-base hover:bg-opacity-90 shadow transition"
+            >
+              <ChevronLeft size={20} /> Previous
+            </button>
+            <button
+              onClick={goToNextRound}
+              className="flex-1 flex justify-center items-center gap-2 bg-[#0EAD69] text-white py-3 rounded-lg font-medium text-base hover:bg-opacity-90 shadow transition"
+            >
+              Next <ChevronRight size={20} />
+            </button>
+          </div>
+
+          <div
+            ref={selectorRef}
+            className="flex overflow-x-auto scrollbar-hide space-x-2 pb-4 mb-6"
+          >
+            {[...Array(45)].map((_, i) => {
+              const roundNum = i + 1;
+              return (
+                <button
+                  key={roundNum}
+                  ref={(el) => (roundRefs.current[roundNum] = el)}
+                  onClick={() => setCurrentRound(roundNum)}
+                  className={`px-3 py-2 min-w-[44px] text-sm rounded-md border text-center font-medium transition-all ${
+                    currentRound === roundNum
+                      ? "bg-yellow-500 text-white border-yellow-500"
+                      : "bg-gray-200 text-gray-600 border-gray-300"
+                  }`}
+                >
+                  {roundNum}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="space-y-4">
+            {eventData.teams.map((team, index) => (
+              <TeamCard
+                key={index}
+                index={index}
+                team={{ ...team, score: getRoundScore(index) }}
+                recentChange={recentChanges[index]}
+                onAdd={addPoints}
+                onRemove={removePoints}
+                disabled={eventData.finished}
+                currentRound={currentRound}
+                rounds={eventData.rounds}
+              />
+            ))}
+          </div>
+          <ScoreTable teams={eventData.teams} rounds={eventData.rounds} />
+
+          {!eventData.finished && (
+            <button
+              onClick={() => setShowFinishPrompt(true)}
+              className="mt-10 w-full bg-[#EE564C] text-white py-3 rounded-xl text-lg font-semibold hover:bg-opacity-90 shadow-lg flex items-center justify-center gap-2"
+            >
+              <Flag size={20} /> Finish Event
+            </button>
+          )}
+        </>
+      )}
+
+      {eventData.finished && (
+        <div className="mt-12 text-center">
+          <h3 className="text-3xl font-extrabold mb-6 flex items-center justify-center gap-2 text-[#1F2937]">
+            <Trophy size={32} className="text-yellow-500" /> Final Leaderboard
+          </h3>
+          <ul className="space-y-2 text-sm sm:text-lg text-zinc-700">
+            {[...eventData.teams]
+              .sort((a, b) => b.score - a.score)
+              .map((team, i) => {
+                let bgColor = "";
+                let textSize = "text-base";
+
+                if (i === 0) {
+                  bgColor = "bg-yellow-300";
+                  textSize = "text-2xl font-extrabold";
+                } else if (i === 1) {
+                  bgColor = "bg-yellow-200";
+                  textSize = "text-xl font-bold";
+                } else if (i === 2) {
+                  bgColor = "bg-yellow-100";
+                  textSize = "text-xl font-bold";
+                }
+
+                return (
+                  <li
+                    key={i}
+                    className={`rounded-lg px-4 py-2 shadow-sm ${bgColor} ${textSize}`}
+                  >
+                    {i + 1}. {team.name} – {team.score} pts
+                  </li>
+                );
+              })}
+          </ul>
+        </div>
       )}
 
       <FinishDialog

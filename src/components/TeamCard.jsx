@@ -1,5 +1,4 @@
-// src/components/TeamCard.jsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const pointOptions = [5, 10, 15, 20, 30, 40, 45, 50];
 
@@ -10,8 +9,37 @@ export default function TeamCard({
   onAdd,
   onRemove,
   disabled,
+  currentRound,
+  rounds,
 }) {
-  const [showSubtract, setShowSubtract] = useState(false);
+  const [localSelected, setLocalSelected] = useState([]);
+
+  // Sync selected points from `rounds` on round change or team change
+  useEffect(() => {
+    const roundKey = `round_${currentRound}`;
+    const entries = rounds?.[roundKey] || [];
+
+    const selected = entries
+      .filter((entry) => entry.teamIndex === index && entry.type === "add")
+      .map((entry) => entry.points);
+
+    setLocalSelected(selected);
+  }, [rounds, currentRound, index]);
+
+  const togglePoint = async (pts) => {
+    const isSelected = localSelected.includes(pts);
+    let updated;
+
+    if (isSelected) {
+      updated = localSelected.filter((p) => p !== pts);
+      setLocalSelected(updated); // UI update
+      await onRemove(index, pts);
+    } else {
+      updated = [...localSelected, pts];
+      setLocalSelected(updated); // UI update
+      await onAdd(index, pts);
+    }
+  };
 
   return (
     <div className="p-4 border rounded shadow bg-white relative overflow-hidden">
@@ -23,79 +51,41 @@ export default function TeamCard({
           {recentChange && (
             <span
               className={`text-lg font-bold w-12 text-right animate-fade-delayed ${
-                recentChange.type === "add" ? "text-green-500" : "text-red-500"
+                recentChange.type === "add" ? "text-[#4CAF50]" : "text-red-500"
               }`}
             >
               {recentChange.type === "add" ? "+" : "-"}
               {recentChange.value}
             </span>
           )}
-          <span className="text-xl font-bold text-blue-600 min-w-[70px]">
+          <span className="text-xl font-bold text-[#2563EB] min-w-[70px]">
             {team.score} pts
           </span>
         </div>
       </div>
 
       {!disabled && (
-        <>
-          {/* Add Buttons */}
-          <div className="overflow-x-auto">
-            <div className="flex gap-2 mb-2 w-max">
-              {pointOptions.map((pts) => (
+        <div className="overflow-x-auto">
+          <div className="flex gap-2 mb-2 w-max">
+            {pointOptions.map((pts) => {
+              const isActive = localSelected.includes(pts);
+              return (
                 <button
-                  key={`add-${pts}`}
-                  onClick={() => onAdd(index, pts)}
-                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 text-base whitespace-nowrap"
+                  key={pts}
+                  onClick={() => togglePoint(pts)}
+                  className={`px-4 py-2 rounded font-semibold text-base whitespace-nowrap transition border
+                    ${
+                      isActive
+                        ? "bg-[#71C168] text-white border-green-600"
+                        : "bg-gray-200 text-gray-700 border-gray-300 hover:bg-gray-300"
+                    }`}
                 >
                   +{pts}
                 </button>
-              ))}
-            </div>
+              );
+            })}
           </div>
-
-          {/* Subtract Toggle (Mobile) */}
-          <div className="block sm:hidden mt-2">
-            <button
-              onClick={() => setShowSubtract((prev) => !prev)}
-              className="text-sm text-red-500 underline"
-            >
-              {showSubtract ? "Hide" : "Show"} Subtract Buttons
-            </button>
-          </div>
-
-          {showSubtract && (
-            <div className="overflow-x-auto mt-2 block sm:hidden">
-              <div className="flex gap-2 w-max">
-                {pointOptions.map((pts) => (
-                  <button
-                    key={`sub-mobile-${pts}`}
-                    onClick={() => onRemove(index, pts)}
-                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 text-base whitespace-nowrap"
-                  >
-                    -{pts}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Subtract Buttons (Desktop) */}
-          <div className="hidden sm:block">
-            <div className="overflow-x-auto mt-2">
-              <div className="flex gap-2 w-max">
-                {pointOptions.map((pts) => (
-                  <button
-                    key={`sub-${pts}`}
-                    onClick={() => onRemove(index, pts)}
-                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 text-base whitespace-nowrap"
-                  >
-                    -{pts}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </>
+        </div>
       )}
     </div>
   );
