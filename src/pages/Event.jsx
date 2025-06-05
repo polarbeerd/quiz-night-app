@@ -210,7 +210,7 @@ export default function Event() {
       {eventData.finished && (
         <div className="mt-12 text-center">
           <h3 className="text-3xl font-extrabold mb-6 flex items-center justify-center gap-2 text-[#1F2937]">
-            <Trophy size={32} className="text-yellow-500" /> 🍺 Sonuç 🍺
+            <Trophy size={64} className="text-yellow-500" />
           </h3>
           <ul className="space-y-2 text-sm sm:text-lg text-zinc-700">
             {[...eventData.teams]
@@ -235,7 +235,7 @@ export default function Event() {
                     key={i}
                     className={`rounded-lg px-4 py-2 shadow-sm ${bgColor} ${textSize}`}
                   >
-                    {i + 1}. {team.name} – {team.score} pts
+                    {i + 1}. {team.name} – {team.score} puan
                   </li>
                 );
               })}

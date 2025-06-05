@@ -67,7 +67,7 @@ export default function TeamCard({
             </span>
           )}
           <span className="text-xl font-bold text-[#2563EB] min-w-[70px]">
-            {team.score} pts
+            {team.score} puan
           </span>
         </div>
       </div>
