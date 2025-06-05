@@ -14,8 +14,11 @@ export default function ScoreTable({ teams, rounds }) {
       return (
         total +
         roundEntries
-          .filter((e) => e.teamIndex === teamIndex && e.type === "add")
-          .reduce((sum, e) => sum + e.points, 0)
+          .filter((e) => e.teamIndex === teamIndex)
+          .reduce(
+            (sum, e) => sum + (e.type === "add" ? e.points : -e.points),
+            0
+          )
       );
     }, 0);
   };

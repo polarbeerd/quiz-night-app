@@ -129,7 +129,7 @@ export default function Event() {
       );
   };
 
-  if (loading) return <div className="p-6 text-center">Loading event...</div>;
+  if (loading) return <div className="p-6 text-center">Yükleniyor...</div>;
 
   return (
     <div className="p-4 sm:p-6 max-w-3xl mx-auto min-h-screen">
@@ -146,13 +146,13 @@ export default function Event() {
               onClick={goToPreviousRound}
               className="flex-1 flex justify-center items-center gap-2 bg-[#0EAD69] text-white py-3 rounded-lg font-medium text-base hover:bg-opacity-90 shadow transition"
             >
-              <ChevronLeft size={20} /> Previous
+              <ChevronLeft size={20} /> Önceki Tur
             </button>
             <button
               onClick={goToNextRound}
               className="flex-1 flex justify-center items-center gap-2 bg-[#0EAD69] text-white py-3 rounded-lg font-medium text-base hover:bg-opacity-90 shadow transition"
             >
-              Next <ChevronRight size={20} />
+              Sonraki Tur <ChevronRight size={20} />
             </button>
           </div>
 
@@ -201,7 +201,7 @@ export default function Event() {
               onClick={() => setShowFinishPrompt(true)}
               className="mt-10 w-full bg-[#EE564C] text-white py-3 rounded-xl text-lg font-semibold hover:bg-opacity-90 shadow-lg flex items-center justify-center gap-2"
             >
-              <Flag size={20} /> Finish Event
+              <Flag size={20} /> Etkinliği Bitir
             </button>
           )}
         </>
@@ -210,7 +210,7 @@ export default function Event() {
       {eventData.finished && (
         <div className="mt-12 text-center">
           <h3 className="text-3xl font-extrabold mb-6 flex items-center justify-center gap-2 text-[#1F2937]">
-            <Trophy size={32} className="text-yellow-500" /> Final Leaderboard
+            <Trophy size={32} className="text-yellow-500" /> 🍺 Sonuç 🍺
           </h3>
           <ul className="space-y-2 text-sm sm:text-lg text-zinc-700">
             {[...eventData.teams]

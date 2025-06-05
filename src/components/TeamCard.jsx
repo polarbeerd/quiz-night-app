@@ -19,9 +19,17 @@ export default function TeamCard({
     const roundKey = `round_${currentRound}`;
     const entries = rounds?.[roundKey] || [];
 
-    const selected = entries
-      .filter((entry) => entry.teamIndex === index && entry.type === "add")
-      .map((entry) => entry.points);
+    // Get the latest action (add/remove) for each point value
+    const latestActionMap = new Map();
+    entries
+      .filter((entry) => entry.teamIndex === index)
+      .forEach((entry) => {
+        latestActionMap.set(entry.points, entry.type);
+      });
+
+    const selected = [...latestActionMap.entries()]
+      .filter(([, type]) => type === "add")
+      .map(([points]) => points);
 
     setLocalSelected(selected);
   }, [rounds, currentRound, index]);

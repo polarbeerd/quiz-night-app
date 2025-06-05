@@ -45,7 +45,7 @@ export default function SetupForm() {
     const newEvent = {
       name: selectedEvent,
       teams: Array.from({ length: teamCount }, (_, i) => ({
-        name: `Team ${i + 1}`,
+        name: `Masa ${i + 1}`,
         score: 0,
       })),
       createdAt: Date.now(),
@@ -58,13 +58,15 @@ export default function SetupForm() {
 
   return (
     <div className="max-w-xl mx-auto mt-10 px-4">
-      <h1 className="text-3xl font-bold text-center mb-8">Create New Event</h1>
+      <h1 className="text-3xl font-bold text-center mb-8">
+        Yeni Etkinlik Oluştur
+      </h1>
 
       <label className="block text-gray-700 font-medium mb-2">
-        Select Event Type
+        Bugün ne oynuyoruz?
       </label>
       <div className="flex justify-between gap-4 mb-6">
-        {["Quiz Night", "Silent Cinema"].map((event) => (
+        {["Quiz Night", "Sessiz Sinema"].map((event) => (
           <button
             key={event}
             onClick={() => setSelectedEvent(event)}
@@ -80,7 +82,7 @@ export default function SetupForm() {
       </div>
 
       <label className="block text-gray-700 font-medium mb-2">
-        Number of Teams
+        Kaç masa var?
       </label>
       <div className="flex justify-between gap-2 mb-6">
         {Array.from({ length: 7 }, (_, i) => i + 3).map((num) => (
@@ -102,12 +104,12 @@ export default function SetupForm() {
         onClick={createEvent}
         className="w-full bg-blue-600 text-white py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 flex items-center justify-center gap-2"
       >
-        Create Event <ArrowRight size={20} />
+        Başla <ArrowRight size={20} />
       </button>
 
       {/* Tabs for Ongoing and Finished Events */}
       <div className="mt-10">
-        <h2 className="text-xl font-bold mb-4">Ongoing Events</h2>
+        <h2 className="text-xl font-bold mb-4">Devam Eden Etkinlikler</h2>
         {events
           .filter((e) => !e.finished)
           .map((event) => (
@@ -125,7 +127,7 @@ export default function SetupForm() {
             </div>
           ))}
 
-        <h2 className="text-xl font-bold my-4">Finished Events</h2>
+        <h2 className="text-xl font-bold my-4">Biten Etkinlikler</h2>
         <div className="space-y-2">
           {events
             .filter((e) => e.finished)

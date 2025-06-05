@@ -10,9 +10,9 @@ export default function FinishDialog({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
       <div className="bg-white p-6 rounded shadow-lg w-96">
-        <h2 className="text-lg font-bold mb-2">Finish Event?</h2>
+        <h2 className="text-lg font-bold mb-2">Etkinlik bitti mi?</h2>
         <p className="text-sm mb-3">
-          Type <b>finish</b> to confirm.
+          <b>evet</b> yaz da garanti olsun.
         </p>
         <input
           type="text"
@@ -22,14 +22,14 @@ export default function FinishDialog({
         />
         <div className="flex justify-end gap-2">
           <button onClick={onClose} className="px-3 py-1 text-gray-600">
-            Cancel
+            İptal
           </button>
           <button
-            disabled={value !== "finish"}
+            disabled={value !== "evet"}
             onClick={onConfirm}
             className="px-3 py-1 bg-red-600 text-white rounded disabled:opacity-50"
           >
-            Confirm
+            Onayla
           </button>
         </div>
       </div>
