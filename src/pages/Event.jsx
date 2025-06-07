@@ -137,10 +137,9 @@ export default function Event() {
 
       {!eventData.finished && (
         <>
-          <div className="text-center text-2xl font-bold mb-3 text-[#1F2937]">
-            Round {currentRound}
+          <div className="text-center text-3xl border-b pb-2 font-bold mb-3 mt-3 text-[#1F2937]">
+            Tur {currentRound}
           </div>
-
           <div className="flex justify-between items-center gap-3 mb-4">
             <button
               onClick={goToPreviousRound}
@@ -155,7 +154,6 @@ export default function Event() {
               Sonraki Tur <ChevronRight size={20} />
             </button>
           </div>
-
           <div
             ref={selectorRef}
             className="flex overflow-x-auto scrollbar-hide space-x-2 pb-4 mb-6"
@@ -178,7 +176,6 @@ export default function Event() {
               );
             })}
           </div>
-
           <div className="space-y-4">
             {eventData.teams.map((team, index) => (
               <TeamCard
@@ -195,7 +192,6 @@ export default function Event() {
             ))}
           </div>
           <ScoreTable teams={eventData.teams} rounds={eventData.rounds} />
-
           {!eventData.finished && (
             <button
               onClick={() => setShowFinishPrompt(true)}

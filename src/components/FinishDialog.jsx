@@ -12,7 +12,7 @@ export default function FinishDialog({
       <div className="bg-white p-6 rounded shadow-lg w-96">
         <h2 className="text-lg font-bold mb-2">Etkinlik bitti mi?</h2>
         <p className="text-sm mb-3">
-          <b>evet</b> yaz da garanti olsun.
+          <b>"E"</b>(evet) yaz da garanti olsun.
         </p>
         <input
           type="text"
@@ -25,7 +25,7 @@ export default function FinishDialog({
             İptal
           </button>
           <button
-            disabled={value !== "evet"}
+            disabled={value !== "E"}
             onClick={onConfirm}
             className="px-3 py-1 bg-red-600 text-white rounded disabled:opacity-50"
           >

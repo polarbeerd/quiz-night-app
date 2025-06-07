@@ -6,12 +6,12 @@ export default function Header() {
   const navigate = useNavigate();
 
   return (
-    <div className="flex justify-center my-0">
+    <div className="flex justify-center my-0 border-b border-gray-400 shadow-sm">
       <img
         src={logo}
         alt="Go to menu"
         onClick={() => navigate("/")}
-        className="h-20 cursor-pointer object-contain"
+        className="h-20 cursor-pointer object-contain "
       />
     </div>
   );

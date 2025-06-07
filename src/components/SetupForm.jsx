@@ -1,4 +1,3 @@
-// src/components/SetupForm.jsx
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { db } from "../firebase";
@@ -10,12 +9,15 @@ import {
   doc,
   onSnapshot,
 } from "firebase/firestore";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Pen } from "lucide-react";
 
 export default function SetupForm() {
   const navigate = useNavigate();
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [teamCount, setTeamCount] = useState(3);
+  const [teamNames, setTeamNames] = useState(
+    Array.from({ length: 3 }, (_, i) => `Masa ${i + 1}`)
+  );
   const [events, setEvents] = useState([]);
 
   useEffect(() => {
@@ -44,8 +46,8 @@ export default function SetupForm() {
 
     const newEvent = {
       name: selectedEvent,
-      teams: Array.from({ length: teamCount }, (_, i) => ({
-        name: `Masa ${i + 1}`,
+      teams: teamNames.map((name) => ({
+        name,
         score: 0,
       })),
       createdAt: Date.now(),
@@ -56,9 +58,15 @@ export default function SetupForm() {
     navigate(`/event/${docRef.id}`);
   };
 
+  // Update teamNames whenever teamCount changes
+  const handleTeamCount = (num) => {
+    setTeamCount(num);
+    setTeamNames(Array.from({ length: num }, (_, i) => `Masa ${i + 1}`));
+  };
+
   return (
-    <div className="max-w-xl mx-auto mt-10 px-4">
-      <h1 className="text-3xl font-bold text-center mb-8">
+    <div className="max-w-xl mx-auto mt-4 px-4">
+      <h1 className="text-3xl text-gray-800 border-b pb-2 font-bold text-center mb-8">
         Yeni Etkinlik Oluştur
       </h1>
 
@@ -88,7 +96,7 @@ export default function SetupForm() {
         {Array.from({ length: 7 }, (_, i) => i + 3).map((num) => (
           <button
             key={num}
-            onClick={() => setTeamCount(num)}
+            onClick={() => handleTeamCount(num)}
             className={`flex-1 py-2 rounded-lg font-semibold transition-colors duration-200 ${
               teamCount === num
                 ? "bg-yellow-500 text-white border border-yellow-600"
@@ -100,6 +108,32 @@ export default function SetupForm() {
         ))}
       </div>
 
+      <div className="mb-6">
+        <label className="block text-gray-700 font-medium mb-2">
+          Takım İsimlerini Düzenle
+        </label>
+        <div className="space-y-2">
+          {teamNames.map((name, idx) => (
+            <div key={idx} className="relative">
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => {
+                  const updated = [...teamNames];
+                  updated[idx] = e.target.value;
+                  setTeamNames(updated);
+                }}
+                className="w-full py-2 pl-4 pr-10 border rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              />
+              <Pen
+                size={16}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
       <button
         onClick={createEvent}
         className="w-full bg-blue-600 text-white py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 flex items-center justify-center gap-2"
@@ -109,7 +143,9 @@ export default function SetupForm() {
 
       {/* Tabs for Ongoing and Finished Events */}
       <div className="mt-10">
-        <h2 className="text-xl font-bold mb-4">Devam Eden Etkinlikler</h2>
+        <h2 className="text-2xl font-bold text-gray-800 border-b pb-2 mb-4">
+          Devam Eden Etkinlikler
+        </h2>
         {events
           .filter((e) => !e.finished)
           .map((event) => (
@@ -127,7 +163,9 @@ export default function SetupForm() {
             </div>
           ))}
 
-        <h2 className="text-xl font-bold my-4">Biten Etkinlikler</h2>
+        <h2 className="text-2xl font-bold text-gray-800 border-b pb-2 mb-4">
+          Biten Etkinlikler
+        </h2>
         <div className="space-y-2">
           {events
             .filter((e) => e.finished)

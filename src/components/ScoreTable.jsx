@@ -36,7 +36,7 @@ export default function ScoreTable({ teams, rounds }) {
         onClick={() => setOpen((prev) => !prev)}
         className="flex items-center gap-2 cursor-pointer select-none mb-2"
       >
-        <h2 className="text-xl font-bold text-gray-800">Scoreboard</h2>
+        <h2 className="text-xl font-bold text-gray-800">Çetele</h2>
         {open ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
       </div>
 
@@ -48,7 +48,7 @@ export default function ScoreTable({ teams, rounds }) {
                 {i + 1}. {team.name}
               </span>
               <span className="text-blue-600 font-medium">
-                {team.score} pts
+                {team.score} puan
               </span>
             </li>
           ))}
