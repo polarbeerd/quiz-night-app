@@ -66,10 +66,9 @@ export default function SetupForm() {
 
   return (
     <div className="max-w-xl mx-auto mt-4 px-4">
-      <h1 className="text-3xl text-gray-800 border-b pb-2 font-bold text-center mb-8">
-        Yeni Etkinlik Oluştur
+      <h1 className="text-2xl font-bold text-gray-800 border-b pb-2 mb-4">
+        Etkinlik Paneli
       </h1>
-
       <label className="block text-gray-700 font-medium mb-2">
         Bugün ne oynuyoruz?
       </label>

@@ -4,7 +4,7 @@ import SetupForm from "../components/SetupForm";
 
 export default function Home() {
   return (
-    <div className="p-6 max-w-xl mx-auto">
+    <div className="px-6 pb-6 pt-0 max-w-xl mx-auto">
       <Header />
       <SetupForm />
     </div>

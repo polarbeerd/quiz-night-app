@@ -132,7 +132,7 @@ export default function Event() {
   if (loading) return <div className="p-6 text-center">Yükleniyor...</div>;
 
   return (
-    <div className="p-4 sm:p-6 max-w-3xl mx-auto min-h-screen">
+    <div className="p-4 pt-0 sm:p-6 max-w-3xl mx-auto min-h-screen">
       <Header />
 
       {!eventData.finished && (
