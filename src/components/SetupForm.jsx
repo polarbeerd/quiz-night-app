@@ -9,17 +9,16 @@ import {
   doc,
   onSnapshot,
 } from "firebase/firestore";
-import { ArrowRight, Pen } from "lucide-react";
-
+import { ArrowRight, Pen, ChevronDown, ChevronUp } from "lucide-react";
 export default function SetupForm() {
   const navigate = useNavigate();
-  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [selectedEvent, setSelectedEvent] = useState("Sessiz Sinema");
   const [teamCount, setTeamCount] = useState(3);
   const [teamNames, setTeamNames] = useState(
     Array.from({ length: 3 }, (_, i) => `Masa ${i + 1}`)
   );
   const [events, setEvents] = useState([]);
-
+  const [showFinished, setShowFinished] = useState(false);
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "events"), (snapshot) => {
       const allEvents = snapshot.docs
@@ -39,7 +38,7 @@ export default function SetupForm() {
       .map((doc) => ({ id: doc.id, ...doc.data() }))
       .sort((a, b) => b.createdAt - a.createdAt);
 
-    if (events.length >= 10) {
+    if (events.length >= 50) {
       const oldestEvent = events[events.length - 1];
       await deleteDoc(doc(eventsRef, oldestEvent.id));
     }
@@ -73,7 +72,7 @@ export default function SetupForm() {
         Bugün ne oynuyoruz?
       </label>
       <div className="flex justify-between gap-4 mb-6">
-        {["Quiz Night", "Sessiz Sinema"].map((event) => (
+        {["Sessiz Sinema", "Quiz Night"].map((event) => (
           <button
             key={event}
             onClick={() => setSelectedEvent(event)}
@@ -162,28 +161,42 @@ export default function SetupForm() {
             </div>
           ))}
 
-        <h2 className="text-2xl font-bold text-gray-800 border-b pb-2 mb-4">
-          Biten Etkinlikler
-        </h2>
-        <div className="space-y-2">
-          {events
-            .filter((e) => e.finished)
-            .map((event) => (
-              <details key={event.id} className="bg-white rounded border p-4">
-                <summary className="cursor-pointer font-semibold">
-                  {event.name} —{" "}
-                  {new Date(event.createdAt).toLocaleDateString()}
-                </summary>
-                <div className="mt-2 text-sm text-gray-600">
-                  {event.teams.map((t, i) => (
-                    <div key={i} className="flex justify-between">
-                      <span>{t.name}</span>
-                      <span>{t.score} pts</span>
+        <div className="mt-6 border-b">
+          <div
+            onClick={() => setShowFinished((prev) => !prev)}
+            className="flex items-center gap-2 cursor-pointer select-none mb-2"
+          >
+            <h2 className="text-2xl font-bold text-gray-800 ">
+              Biten Etkinlikler
+            </h2>
+            {showFinished ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+          </div>
+
+          {showFinished && (
+            <div className="space-y-2">
+              {events
+                .filter((e) => e.finished)
+                .map((event) => (
+                  <details
+                    key={event.id}
+                    className="bg-white rounded border p-4"
+                  >
+                    <summary className="cursor-pointer font-semibold">
+                      {event.name} —{" "}
+                      {new Date(event.createdAt).toLocaleDateString()}
+                    </summary>
+                    <div className="mt-2 text-sm text-gray-600">
+                      {event.teams.map((t, i) => (
+                        <div key={i} className="flex justify-between">
+                          <span>{t.name}</span>
+                          <span>{t.score} pts</span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </details>
-            ))}
+                  </details>
+                ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

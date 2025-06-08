@@ -12,14 +12,14 @@ export default function TeamCard({
   currentRound,
   rounds,
 }) {
-  const [localSelected, setLocalSelected] = useState([]);
+  const [selectedPoint, setSelectedPoint] = useState(null);
 
-  // Sync selected points from `rounds` on round change or team change
+  // Sync selected point from `rounds` on round change or team change
   useEffect(() => {
     const roundKey = `round_${currentRound}`;
     const entries = rounds?.[roundKey] || [];
 
-    // Get the latest action (add/remove) for each point value
+    // Get latest action for each point value
     const latestActionMap = new Map();
     entries
       .filter((entry) => entry.teamIndex === index)
@@ -31,20 +31,23 @@ export default function TeamCard({
       .filter(([, type]) => type === "add")
       .map(([points]) => points);
 
-    setLocalSelected(selected);
+    // Select the last added point, or null
+    setSelectedPoint(
+      selected.length > 0 ? selected[selected.length - 1] : null
+    );
   }, [rounds, currentRound, index]);
 
   const togglePoint = async (pts) => {
-    const isSelected = localSelected.includes(pts);
-    let updated;
+    const isSelected = selectedPoint === pts;
 
     if (isSelected) {
-      updated = localSelected.filter((p) => p !== pts);
-      setLocalSelected(updated); // UI update
+      setSelectedPoint(null); // UI update
       await onRemove(index, pts);
     } else {
-      updated = [...localSelected, pts];
-      setLocalSelected(updated); // UI update
+      if (selectedPoint !== null) {
+        await onRemove(index, selectedPoint);
+      }
+      setSelectedPoint(pts); // UI update
       await onAdd(index, pts);
     }
   };
@@ -76,7 +79,9 @@ export default function TeamCard({
         <div className="overflow-x-auto">
           <div className="flex gap-2 mb-2 w-max">
             {pointOptions.map((pts) => {
-              const isActive = localSelected.includes(pts);
+              const isActive = selectedPoint === pts;
+              const isBlurred = selectedPoint !== null && !isActive;
+
               return (
                 <button
                   key={pts}
@@ -86,7 +91,13 @@ export default function TeamCard({
                       isActive
                         ? "bg-[#71C168] text-white border-green-600"
                         : "bg-gray-200 text-gray-700 border-gray-300 hover:bg-gray-300"
-                    }`}
+                    }
+                    ${
+                      isBlurred
+                        ? "opacity-40 blur-[1px] pointer-events-none"
+                        : ""
+                    }
+                  `}
                 >
                   +{pts}
                 </button>

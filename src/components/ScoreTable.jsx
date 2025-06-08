@@ -31,7 +31,7 @@ export default function ScoreTable({ teams, rounds }) {
     .sort((a, b) => b.score - a.score);
 
   return (
-    <div className="mt-10">
+    <div className="mt-6">
       <div
         onClick={() => setOpen((prev) => !prev)}
         className="flex items-center gap-2 cursor-pointer select-none mb-2"

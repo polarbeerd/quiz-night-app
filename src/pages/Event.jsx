@@ -140,23 +140,9 @@ export default function Event() {
           <div className="text-center text-3xl border-b pb-2 font-bold mb-3 mt-3 text-[#1F2937]">
             Tur {currentRound}
           </div>
-          <div className="flex justify-between items-center gap-3 mb-4">
-            <button
-              onClick={goToPreviousRound}
-              className="flex-1 flex justify-center items-center gap-2 bg-[#0EAD69] text-white py-3 rounded-lg font-medium text-base hover:bg-opacity-90 shadow transition"
-            >
-              <ChevronLeft size={20} /> Önceki Tur
-            </button>
-            <button
-              onClick={goToNextRound}
-              className="flex-1 flex justify-center items-center gap-2 bg-[#0EAD69] text-white py-3 rounded-lg font-medium text-base hover:bg-opacity-90 shadow transition"
-            >
-              Sonraki Tur <ChevronRight size={20} />
-            </button>
-          </div>
           <div
             ref={selectorRef}
-            className="flex overflow-x-auto scrollbar-hide space-x-2 pb-4 mb-6"
+            className="flex overflow-x-auto scrollbar-hide space-x-2 pb-4 "
           >
             {[...Array(45)].map((_, i) => {
               const roundNum = i + 1;
@@ -191,6 +177,21 @@ export default function Event() {
               />
             ))}
           </div>
+          <div className="flex justify-between items-center gap-6 mt-4 ">
+            <button
+              onClick={goToPreviousRound}
+              className=" flex-1 flex justify-center items-center gap-2 bg-[#6EBF9A] text-white py-3 rounded-lg font-medium text-base hover:bg-opacity-90 shadow transition"
+            >
+              <ChevronLeft size={20} /> Önceki Tur
+            </button>
+            <button
+              onClick={goToNextRound}
+              className="flex-1 flex justify-center items-center gap-2 bg-[#0EAD69] text-white py-3 rounded-lg font-medium text-base hover:bg-opacity-90 shadow transition"
+            >
+              Sonraki Tur <ChevronRight size={20} />
+            </button>
+          </div>
+
           <ScoreTable teams={eventData.teams} rounds={eventData.rounds} />
           {!eventData.finished && (
             <button
