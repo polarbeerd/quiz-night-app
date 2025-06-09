@@ -151,11 +151,16 @@ export default function Event() {
                   key={roundNum}
                   ref={(el) => (roundRefs.current[roundNum] = el)}
                   onClick={() => setCurrentRound(roundNum)}
-                  className={`px-3 py-2 min-w-[44px] text-sm rounded-md border text-center font-medium transition-all ${
-                    currentRound === roundNum
-                      ? "bg-yellow-500 text-white border-yellow-500"
-                      : "bg-gray-200 text-gray-600 border-gray-300"
-                  }`}
+                  className={`flex-shrink-0 
+  min-w-[44px] 
+  sm:min-w-[60px] 
+  md:min-w-[80px] 
+  px-3 py-2 text-sm 
+  rounded-md border text-center font-medium ${
+    currentRound === roundNum
+      ? "bg-yellow-500 text-white border-yellow-500"
+      : "bg-gray-200 text-gray-600 border-gray-300"
+  }`}
                 >
                   {roundNum}
                 </button>
