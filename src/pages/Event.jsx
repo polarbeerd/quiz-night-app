@@ -1,4 +1,3 @@
-// src/pages/Event.jsx
 import { useParams } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
@@ -18,8 +17,11 @@ export default function Event() {
   const [showFinishPrompt, setShowFinishPrompt] = useState(false);
   const [finishInput, setFinishInput] = useState("");
   const [currentRound, setCurrentRound] = useState(1);
+  const [manualScroll, setManualScroll] = useState(false);
+
   const roundRefs = useRef({});
   const selectorRef = useRef(null);
+  const topRef = useRef(null);
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -39,22 +41,30 @@ export default function Event() {
         particleCount: 1000,
         spread: 100,
         startVelocity: 50,
-        gravity: 1, // higher gravity to push down
-        ticks: 1000, // longer animation
+        gravity: 1,
+        ticks: 1000,
         origin: { y: 0.1 },
         scalar: 1.2,
       });
     }
   }, [eventData?.finished]);
+
   useEffect(() => {
     const activeRef = roundRefs.current[currentRound];
-    const container = selectorRef.current;
-    if (activeRef && container) {
+
+    // Always center the selected round in the round selector
+    if (activeRef) {
       activeRef.scrollIntoView({
         behavior: "smooth",
         inline: "center",
         block: "nearest",
       });
+    }
+
+    // If manual scroll, also scroll to the round title
+    if (manualScroll && topRef.current) {
+      topRef.current.scrollIntoView({ behavior: "smooth" });
+      setManualScroll(false);
     }
   }, [currentRound]);
 
@@ -75,9 +85,7 @@ export default function Event() {
 
     const updatedRounds = eventData.rounds || {};
     const roundKey = `round_${currentRound}`;
-    if (!updatedRounds[roundKey]) {
-      updatedRounds[roundKey] = [];
-    }
+    updatedRounds[roundKey] = updatedRounds[roundKey] || [];
     updatedRounds[roundKey].push({ teamIndex, points, type: "add" });
 
     await updateDoc(doc(db, "events", eventId), {
@@ -85,7 +93,12 @@ export default function Event() {
       rounds: updatedRounds,
     });
 
-    setEventData({ ...eventData, teams: updatedTeams, rounds: updatedRounds });
+    setEventData((prev) => ({
+      ...prev,
+      teams: updatedTeams,
+      rounds: updatedRounds,
+    }));
+
     flashChange(teamIndex, points, "add");
   };
 
@@ -95,9 +108,7 @@ export default function Event() {
 
     const updatedRounds = eventData.rounds || {};
     const roundKey = `round_${currentRound}`;
-    if (!updatedRounds[roundKey]) {
-      updatedRounds[roundKey] = [];
-    }
+    updatedRounds[roundKey] = updatedRounds[roundKey] || [];
     updatedRounds[roundKey].push({ teamIndex, points, type: "subtract" });
 
     await updateDoc(doc(db, "events", eventId), {
@@ -105,26 +116,34 @@ export default function Event() {
       rounds: updatedRounds,
     });
 
-    setEventData({ ...eventData, teams: updatedTeams, rounds: updatedRounds });
+    setEventData((prev) => ({
+      ...prev,
+      teams: updatedTeams,
+      rounds: updatedRounds,
+    }));
+
     flashChange(teamIndex, points, "subtract");
   };
 
-  const goToPreviousRound = () => {
-    if (currentRound > 1) setCurrentRound((prev) => prev - 1);
+  const goToNextRound = () => {
+    setManualScroll(true); // ✅ important
+    setCurrentRound((prev) => prev + 1);
   };
 
-  const goToNextRound = () => {
-    setCurrentRound((prev) => prev + 1);
+  const goToPreviousRound = () => {
+    if (currentRound > 1) {
+      setManualScroll(true); // ✅ important
+      setCurrentRound((prev) => prev - 1);
+    }
   };
 
   const getRoundScore = (teamIndex) => {
     const roundKey = `round_${currentRound}`;
-    const roundEntries = eventData.rounds?.[roundKey] || [];
-    return roundEntries
-      .filter((entry) => entry.teamIndex === teamIndex)
+    const entries = eventData.rounds?.[roundKey] || [];
+    return entries
+      .filter((e) => e.teamIndex === teamIndex)
       .reduce(
-        (acc, entry) =>
-          entry.type === "add" ? acc + entry.points : acc - entry.points,
+        (acc, e) => (e.type === "add" ? acc + e.points : acc - e.points),
         0
       );
   };
@@ -137,12 +156,16 @@ export default function Event() {
 
       {!eventData.finished && (
         <>
-          <div className="text-center text-3xl border-b pb-2 font-bold mb-3 mt-3 text-[#1F2937]">
+          <div
+            ref={topRef}
+            className="text-center text-3xl border-b pb-2 font-bold mb-3 mt-3 text-[#1F2937]"
+          >
             Tur {currentRound}
           </div>
+
           <div
             ref={selectorRef}
-            className="flex overflow-x-auto scrollbar-hide space-x-2 pb-4 "
+            className="flex overflow-x-auto scrollbar-hide space-x-2 pb-4"
           >
             {[...Array(45)].map((_, i) => {
               const roundNum = i + 1;
@@ -151,22 +174,18 @@ export default function Event() {
                   key={roundNum}
                   ref={(el) => (roundRefs.current[roundNum] = el)}
                   onClick={() => setCurrentRound(roundNum)}
-                  className={`flex-shrink-0 
-  min-w-[44px] 
-  sm:min-w-[60px] 
-  md:min-w-[80px] 
-  px-3 py-2 text-sm 
-  rounded-md border text-center font-medium ${
-    currentRound === roundNum
-      ? "bg-yellow-500 text-white border-yellow-500"
-      : "bg-gray-200 text-gray-600 border-gray-300"
-  }`}
+                  className={`flex-shrink-0 min-w-[44px] sm:min-w-[60px] md:min-w-[80px] px-3 py-2 text-sm rounded-md border text-center font-medium ${
+                    currentRound === roundNum
+                      ? "bg-yellow-500 text-white border-yellow-500"
+                      : "bg-gray-200 text-gray-600 border-gray-300"
+                  }`}
                 >
                   {roundNum}
                 </button>
               );
             })}
           </div>
+
           <div className="space-y-4">
             {eventData.teams.map((team, index) => (
               <TeamCard
@@ -182,10 +201,11 @@ export default function Event() {
               />
             ))}
           </div>
-          <div className="flex justify-between items-center gap-6 mt-4 ">
+
+          <div className="flex justify-between items-center gap-6 mt-4">
             <button
               onClick={goToPreviousRound}
-              className=" flex-1 flex justify-center items-center gap-2 bg-[#6EBF9A] text-white py-3 rounded-lg font-medium text-base hover:bg-opacity-90 shadow transition"
+              className="flex-1 flex justify-center items-center gap-2 bg-[#6EBF9A] text-white py-3 rounded-lg font-medium text-base hover:bg-opacity-90 shadow transition"
             >
               <ChevronLeft size={20} /> Önceki Tur
             </button>
@@ -198,14 +218,13 @@ export default function Event() {
           </div>
 
           <ScoreTable teams={eventData.teams} rounds={eventData.rounds} />
-          {!eventData.finished && (
-            <button
-              onClick={() => setShowFinishPrompt(true)}
-              className="mt-10 w-full bg-[#EE564C] text-white py-3 rounded-xl text-lg font-semibold hover:bg-opacity-90 shadow-lg flex items-center justify-center gap-2"
-            >
-              <Flag size={20} /> Etkinliği Bitir
-            </button>
-          )}
+
+          <button
+            onClick={() => setShowFinishPrompt(true)}
+            className="mt-10 w-full bg-[#EE564C] text-white py-3 rounded-xl text-lg font-semibold hover:bg-opacity-90 shadow-lg flex items-center justify-center gap-2"
+          >
+            <Flag size={20} /> Etkinliği Bitir
+          </button>
         </>
       )}
 

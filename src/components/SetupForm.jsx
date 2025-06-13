@@ -9,7 +9,8 @@ import {
   doc,
   onSnapshot,
 } from "firebase/firestore";
-import { ArrowRight, Pen, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowRight, Pen, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
+
 export default function SetupForm() {
   const navigate = useNavigate();
   const [selectedEvent, setSelectedEvent] = useState("Sessiz Sinema");
@@ -19,6 +20,8 @@ export default function SetupForm() {
   );
   const [events, setEvents] = useState([]);
   const [showFinished, setShowFinished] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "events"), (snapshot) => {
       const allEvents = snapshot.docs
@@ -57,10 +60,14 @@ export default function SetupForm() {
     navigate(`/event/${docRef.id}`);
   };
 
-  // Update teamNames whenever teamCount changes
   const handleTeamCount = (num) => {
     setTeamCount(num);
     setTeamNames(Array.from({ length: num }, (_, i) => `Masa ${i + 1}`));
+  };
+
+  const deleteEvent = async (id) => {
+    await deleteDoc(doc(db, "events", id));
+    setConfirmDeleteId(null);
   };
 
   return (
@@ -139,7 +146,7 @@ export default function SetupForm() {
         Başla <ArrowRight size={20} />
       </button>
 
-      {/* Tabs for Ongoing and Finished Events */}
+      {/* Devam Eden Etkinlikler */}
       <div className="mt-10">
         <h2 className="text-2xl font-bold text-gray-800 border-b pb-2 mb-4">
           Devam Eden Etkinlikler
@@ -149,24 +156,33 @@ export default function SetupForm() {
           .map((event) => (
             <div
               key={event.id}
-              className="p-4 bg-white rounded shadow mb-3 cursor-pointer border hover:bg-gray-50"
+              className="p-4 bg-white rounded shadow mb-3 cursor-pointer border hover:bg-gray-50 flex justify-between items-center"
               onClick={() => navigate(`/event/${event.id}`)}
             >
-              <div className="flex flex-col">
-                <span className="font-semibold text-base">{event.name}</span>
-                <span className="text-sm text-gray-500">
+              <div>
+                <div className="font-semibold text-base">{event.name}</div>
+                <div className="text-sm text-gray-500">
                   {new Date(event.createdAt).toLocaleString()}
-                </span>
+                </div>
               </div>
+              <Trash2
+                size={18}
+                className="text-gray-500 hover:text-red-600"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setConfirmDeleteId(event.id);
+                }}
+              />
             </div>
           ))}
 
+        {/* Biten Etkinlikler */}
         <div className="mt-6 border-b">
           <div
             onClick={() => setShowFinished((prev) => !prev)}
             className="flex items-center gap-2 cursor-pointer select-none mb-2"
           >
-            <h2 className="text-2xl font-bold text-gray-800 ">
+            <h2 className="text-2xl font-bold text-gray-800">
               Biten Etkinlikler
             </h2>
             {showFinished ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
@@ -181,9 +197,20 @@ export default function SetupForm() {
                     key={event.id}
                     className="bg-white rounded border p-4"
                   >
-                    <summary className="cursor-pointer font-semibold">
-                      {event.name} —{" "}
-                      {new Date(event.createdAt).toLocaleDateString()}
+                    <summary className="cursor-pointer font-semibold flex justify-between items-center">
+                      <span>
+                        {event.name} —{" "}
+                        {new Date(event.createdAt).toLocaleDateString()}
+                      </span>
+                      <Trash2
+                        size={16}
+                        className="text-gray-500 hover:text-red-600"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setConfirmDeleteId(event.id);
+                        }}
+                      />
                     </summary>
                     <div className="mt-2 text-sm text-gray-600">
                       {event.teams.map((t, i) => (
@@ -199,6 +226,37 @@ export default function SetupForm() {
           )}
         </div>
       </div>
+
+      {/* Confirmation Popup */}
+      {confirmDeleteId && (
+        <div
+          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+          onClick={() => setConfirmDeleteId(null)} // allow closing by clicking outside
+        >
+          <div
+            className="bg-white rounded-lg p-6 max-w-sm w-full shadow-lg"
+            onClick={(e) => e.stopPropagation()} // prevent closing when clicking inside the dialog
+          >
+            <p className="text-lg font-semibold mb-4 text-center">
+              Etkinliği silmek istediğine emin misin?
+            </p>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={() => setConfirmDeleteId(null)}
+                className="px-4 py-2 bg-[#EE564C] text-white rounded hover:bg-[#DC3226]"
+              >
+                Hayır
+              </button>
+              <button
+                onClick={() => deleteEvent(confirmDeleteId)}
+                className="px-4 py-2 bg-[#0EAD69] text-white rounded hover:bg-green-700"
+              >
+                Evet
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
