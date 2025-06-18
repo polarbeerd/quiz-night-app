@@ -78,57 +78,43 @@ export default function Event() {
   };
 
   const addPoints = async (teamIndex, points) => {
-    const updatedTeams = [...eventData.teams];
-    updatedTeams[teamIndex].score += points;
+    setEventData((prev) => {
+      const roundKey = `round_${currentRound}`;
+      const updatedRounds = {
+        ...prev.rounds,
+        [roundKey]: [
+          ...(prev.rounds?.[roundKey] || []),
+          { teamIndex, points, type: "add" },
+        ],
+      };
 
-    const roundKey = `round_${currentRound}`;
-    const updatedRounds = {
-      ...eventData.rounds,
-      [roundKey]: [
-        ...(eventData.rounds?.[roundKey] || []),
-        { teamIndex, points, type: "add" },
-      ],
-    };
+      flashChange(teamIndex, points, "add");
 
-    await updateDoc(doc(db, "events", eventId), {
-      teams: updatedTeams,
-      rounds: updatedRounds,
+      return {
+        ...prev,
+        rounds: updatedRounds,
+      };
     });
-
-    setEventData((prev) => ({
-      ...prev,
-      teams: updatedTeams,
-      rounds: updatedRounds,
-    }));
-
-    flashChange(teamIndex, points, "add");
   };
 
   const removePoints = async (teamIndex, points) => {
-    const updatedTeams = [...eventData.teams];
-    updatedTeams[teamIndex].score -= points;
+    setEventData((prev) => {
+      const roundKey = `round_${currentRound}`;
+      const updatedRounds = {
+        ...prev.rounds,
+        [roundKey]: [
+          ...(prev.rounds?.[roundKey] || []),
+          { teamIndex, points, type: "subtract" },
+        ],
+      };
 
-    const roundKey = `round_${currentRound}`;
-    const updatedRounds = {
-      ...eventData.rounds,
-      [roundKey]: [
-        ...(eventData.rounds?.[roundKey] || []),
-        { teamIndex, points, type: "subtract" },
-      ],
-    };
+      flashChange(teamIndex, points, "subtract");
 
-    await updateDoc(doc(db, "events", eventId), {
-      teams: updatedTeams,
-      rounds: updatedRounds,
+      return {
+        ...prev,
+        rounds: updatedRounds,
+      };
     });
-
-    setEventData((prev) => ({
-      ...prev,
-      teams: updatedTeams,
-      rounds: updatedRounds,
-    }));
-
-    flashChange(teamIndex, points, "subtract");
   };
 
   const goToNextRound = () => {

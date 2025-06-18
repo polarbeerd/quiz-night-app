@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { CircleX } from "lucide-react";
+
 const pointOptions = [10, 15, 20, 30, 40, 45, 50];
 
 export default function TeamCard({
   team,
   index,
-  recentChange,
   onAdd,
   onRemove,
   disabled,
@@ -14,10 +14,10 @@ export default function TeamCard({
 }) {
   const [selectedPoint, setSelectedPoint] = useState(null);
 
-  const roundKey = `round_${currentRound}`;
-  const roundEntries = rounds?.[roundKey] || [];
-
   const { regularPoint, activeBonuses } = useMemo(() => {
+    const roundKey = `round_${currentRound}`;
+    const roundEntries = rounds?.[roundKey] || [];
+
     const teamEntries = roundEntries.filter((e) => e.teamIndex === index);
 
     const regularAdds = teamEntries.filter(
@@ -39,24 +39,25 @@ export default function TeamCard({
     const activeBonuses = Array.from({ length: netBonusCount }, (_, i) => i);
 
     return { regularPoint, activeBonuses };
-  }, [roundEntries, index]);
+  }, [rounds, currentRound, index]);
 
   useEffect(() => {
     setSelectedPoint(regularPoint);
   }, [regularPoint]);
 
   const togglePoint = async (pts) => {
-    const isSelected = selectedPoint === pts;
+    const previousPoint = selectedPoint;
+    const isSelected = previousPoint === pts;
 
     if (isSelected) {
       setSelectedPoint(null);
       await onRemove(index, pts);
     } else {
-      if (selectedPoint !== null) {
-        await onRemove(index, selectedPoint);
+      if (previousPoint !== null) {
+        await onRemove(index, previousPoint);
       }
-      setSelectedPoint(pts);
       await onAdd(index, pts);
+      setSelectedPoint(pts);
     }
   };
 
@@ -71,7 +72,7 @@ export default function TeamCard({
   };
 
   return (
-    <div className="max-w-xl mx-auto p-4 border rounded shadow bg-white relative overflow-hidden">
+    <div className="w-full max-w-4xl md:w-auto mx-auto p-4 border rounded shadow bg-white relative overflow-hidden">
       <div className="flex justify-between items-center mb-2">
         <h2 className="text-lg font-semibold truncate max-w-[60%]">
           {team.name}
@@ -85,7 +86,7 @@ export default function TeamCard({
 
       {!disabled && (
         <div className="w-full">
-          <div className="flex flex-wrap md:flex-nowrap gap-2 mb-2">
+          <div className="flex flex-wrap gap-2 mb-2">
             {pointOptions.map((pts) => {
               const isActive = selectedPoint === pts;
 
