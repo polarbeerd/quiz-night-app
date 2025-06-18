@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase";
@@ -11,6 +11,8 @@ import ScoreTable from "../components/ScoreTable";
 
 export default function Event() {
   const { id: eventId } = useParams();
+  const navigate = useNavigate();
+
   const [eventData, setEventData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [recentChanges, setRecentChanges] = useState({});
@@ -18,6 +20,8 @@ export default function Event() {
   const [finishInput, setFinishInput] = useState("");
   const [currentRound, setCurrentRound] = useState(1);
   const [manualScroll, setManualScroll] = useState(false);
+  const [localComment, setLocalComment] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   const roundRefs = useRef({});
   const selectorRef = useRef(null);
@@ -51,7 +55,6 @@ export default function Event() {
 
   useEffect(() => {
     const activeRef = roundRefs.current[currentRound];
-
     if (activeRef) {
       activeRef.scrollIntoView({
         behavior: "smooth",
@@ -65,6 +68,12 @@ export default function Event() {
       setManualScroll(false);
     }
   }, [currentRound]);
+
+  useEffect(() => {
+    if (eventData?.moderatorComment !== undefined) {
+      setLocalComment(eventData.moderatorComment);
+    }
+  }, [eventData?.moderatorComment]);
 
   const flashChange = (teamIndex, value, type) => {
     setRecentChanges((prev) => ({ ...prev, [teamIndex]: { value, type } }));
@@ -87,13 +96,8 @@ export default function Event() {
           { teamIndex, points, type: "add" },
         ],
       };
-
       flashChange(teamIndex, points, "add");
-
-      return {
-        ...prev,
-        rounds: updatedRounds,
-      };
+      return { ...prev, rounds: updatedRounds };
     });
   };
 
@@ -107,13 +111,8 @@ export default function Event() {
           { teamIndex, points, type: "subtract" },
         ],
       };
-
       flashChange(teamIndex, points, "subtract");
-
-      return {
-        ...prev,
-        rounds: updatedRounds,
-      };
+      return { ...prev, rounds: updatedRounds };
     });
   };
 
@@ -221,10 +220,11 @@ export default function Event() {
       )}
 
       {eventData.finished && (
-        <div className="mt-12 text-center">
-          <h3 className="text-3xl font-extrabold mb-6 flex items-center justify-center gap-2 text-[#1F2937]">
+        <div className="mt-12 text-center space-y-6">
+          <h3 className="text-3xl font-extrabold flex items-center justify-center gap-2 text-[#1F2937]">
             <Trophy size={64} className="text-yellow-500" />
           </h3>
+
           <ul className="space-y-2 text-sm sm:text-lg text-zinc-700">
             {[...eventData.teams]
               .sort((a, b) => b.score - a.score)
@@ -253,6 +253,37 @@ export default function Event() {
                 );
               })}
           </ul>
+
+          <div className="text-left border rounded-lg p-4 shadow bg-white">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Etkinlik Yorumu / Notlar
+            </label>
+            <textarea
+              className="w-full border rounded-md p-2 text-sm text-gray-700 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+              rows={3}
+              placeholder="Kazanan takım, genel değerlendirme vs..."
+              value={localComment}
+              onChange={(e) => setLocalComment(e.target.value)}
+            />
+            <button
+              onClick={async () => {
+                setIsSaving(true);
+                await updateDoc(doc(db, "events", eventId), {
+                  moderatorComment: localComment.trim(),
+                });
+                setEventData((prev) => ({
+                  ...prev,
+                  moderatorComment: localComment.trim(),
+                }));
+                setIsSaving(false);
+                navigate("/"); // redirect after saving
+              }}
+              className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+              disabled={isSaving}
+            >
+              {isSaving ? "Kaydediliyor..." : "Kaydet ve Ana Sayfaya Dön"}
+            </button>
+          </div>
         </div>
       )}
 
@@ -260,8 +291,15 @@ export default function Event() {
         show={showFinishPrompt}
         onClose={() => setShowFinishPrompt(false)}
         onConfirm={async () => {
-          await updateDoc(doc(db, "events", eventId), { finished: true });
-          setEventData((prev) => ({ ...prev, finished: true }));
+          await updateDoc(doc(db, "events", eventId), {
+            finished: true,
+            moderatorComment: finishInput.trim(),
+          });
+          setEventData((prev) => ({
+            ...prev,
+            finished: true,
+            moderatorComment: finishInput.trim(),
+          }));
           setShowFinishPrompt(false);
         }}
         value={finishInput}

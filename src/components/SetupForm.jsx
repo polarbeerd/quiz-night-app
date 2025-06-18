@@ -6,6 +6,7 @@ import {
   addDoc,
   getDocs,
   deleteDoc,
+  updateDoc,
   doc,
   onSnapshot,
 } from "firebase/firestore";
@@ -21,6 +22,8 @@ export default function SetupForm() {
   const [events, setEvents] = useState([]);
   const [showFinished, setShowFinished] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editedComment, setEditedComment] = useState("");
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "events"), (snapshot) => {
@@ -195,12 +198,17 @@ export default function SetupForm() {
                 .map((event) => (
                   <details
                     key={event.id}
-                    className="bg-white rounded border p-4"
+                    className="bg-white rounded border p-4 group"
                   >
                     <summary className="cursor-pointer font-semibold flex justify-between items-center">
-                      <span>
+                      <span className="flex items-center gap-2">
+                        <ChevronDown className="group-open:hidden" size={16} />
+                        <ChevronUp
+                          className="hidden group-open:inline"
+                          size={16}
+                        />
                         {event.name} —{" "}
-                        {new Date(event.createdAt).toLocaleDateString()}
+                        {new Date(event.createdAt).toLocaleDateString("tr-TR")}
                       </span>
                       <Trash2
                         size={16}
@@ -212,13 +220,62 @@ export default function SetupForm() {
                         }}
                       />
                     </summary>
-                    <div className="mt-2 text-sm text-gray-600">
+
+                    {/* Team Scores */}
+                    <div className="mt-2 text-sm text-gray-600 space-y-1">
                       {event.teams.map((t, i) => (
                         <div key={i} className="flex justify-between">
                           <span>{t.name}</span>
                           <span>{t.score} pts</span>
                         </div>
                       ))}
+
+                      {/* Moderator Comment */}
+                      {editingCommentId === event.id ? (
+                        <div className="mt-3 space-y-2">
+                          <textarea
+                            className="w-full border rounded p-2 text-sm text-gray-700 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                            rows={3}
+                            value={editedComment}
+                            onChange={(e) => setEditedComment(e.target.value)}
+                          />
+                          <div className="flex gap-2 justify-end">
+                            <button
+                              onClick={() => setEditingCommentId(null)}
+                              className="text-sm px-3 py-1 rounded bg-gray-200 hover:bg-gray-300"
+                            >
+                              Vazgeç
+                            </button>
+                            <button
+                              onClick={async () => {
+                                await updateDoc(doc(db, "events", event.id), {
+                                  moderatorComment: editedComment.trim(),
+                                });
+                                setEditingCommentId(null);
+                              }}
+                              className="text-sm px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700"
+                            >
+                              Kaydet
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="mt-3 italic text-sm text-gray-500 border-t pt-2 flex justify-between items-start gap-2">
+                          <span>
+                            <strong>Not:</strong> {event.moderatorComment}
+                          </span>
+                          <button
+                            onClick={() => {
+                              setEditedComment(event.moderatorComment || "");
+                              setEditingCommentId(event.id);
+                            }}
+                            className="text-gray-400 hover:text-blue-600"
+                            title="Düzenle"
+                          >
+                            <Pen size={16} />
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </details>
                 ))}
