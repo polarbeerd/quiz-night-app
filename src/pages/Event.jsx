@@ -85,7 +85,25 @@ export default function Event() {
       });
     }, 2500);
   };
+  // ...existing code...
 
+  // Calculate final scores for all teams
+  const calculateFinalTeams = () => {
+    if (!eventData?.teams) return [];
+    const rounds = eventData.rounds || {};
+    return eventData.teams.map((team, teamIndex) => {
+      let score = 0;
+      Object.values(rounds).forEach((entries) => {
+        entries
+          .filter((e) => e.teamIndex === teamIndex)
+          .forEach((e) => {
+            score += e.type === "add" ? e.points : -e.points;
+          });
+      });
+      return { ...team, score };
+    });
+  };
+  // ...existing code...
   const addPoints = async (teamIndex, points) => {
     setEventData((prev) => {
       const roundKey = `round_${currentRound}`;
@@ -144,7 +162,6 @@ export default function Event() {
   return (
     <div className="p-4 pt-0 max-w-3xl mx-auto min-h-screen">
       <Header />
-
       {!eventData.finished && (
         <>
           <div
@@ -218,7 +235,6 @@ export default function Event() {
           </button>
         </>
       )}
-
       {eventData.finished && (
         <div className="mt-12 text-center space-y-6">
           <h3 className="text-3xl font-extrabold flex items-center justify-center gap-2 text-[#1F2937]">
@@ -291,14 +307,17 @@ export default function Event() {
         show={showFinishPrompt}
         onClose={() => setShowFinishPrompt(false)}
         onConfirm={async () => {
+          const finalTeams = calculateFinalTeams();
           await updateDoc(doc(db, "events", eventId), {
             finished: true,
             moderatorComment: finishInput.trim(),
+            teams: finalTeams,
           });
           setEventData((prev) => ({
             ...prev,
             finished: true,
             moderatorComment: finishInput.trim(),
+            teams: finalTeams,
           }));
           setShowFinishPrompt(false);
         }}
