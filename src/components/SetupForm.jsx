@@ -120,6 +120,10 @@ export default function SetupForm() {
         <label className="block text-gray-700 font-medium mb-2">
           Takım İsimlerini Düzenle
         </label>
+        <p className="text-xs text-gray-500 mb-2">
+          Takım adını kişiselleştirin:{" "}
+          <span className="italic">Masa 1 - Deniz</span> gibi.
+        </p>
         <div className="space-y-2">
           {teamNames.map((name, idx) => (
             <div key={idx} className="relative">
@@ -127,10 +131,20 @@ export default function SetupForm() {
                 type="text"
                 value={name}
                 onChange={(e) => {
-                  const updated = [...teamNames];
-                  updated[idx] = e.target.value;
-                  setTeamNames(updated);
+                  // Always start with "Masa X"
+                  const base = `Masa ${idx + 1}`;
+                  let val = e.target.value;
+                  // Prevent user from deleting the base
+                  if (!val.startsWith(base)) {
+                    val = base;
+                  }
+                  setTeamNames((prev) => {
+                    const updated = [...prev];
+                    updated[idx] = val;
+                    return updated;
+                  });
                 }}
+                placeholder={`Masa ${idx + 1} - Takım İsmi (örn: Yiğit)`}
                 className="w-full py-2 pl-4 pr-10 border rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
               <Pen
@@ -141,7 +155,6 @@ export default function SetupForm() {
           ))}
         </div>
       </div>
-
       <button
         onClick={createEvent}
         className="w-full bg-blue-600 text-white py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 flex items-center justify-center gap-2"

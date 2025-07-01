@@ -28,6 +28,11 @@ export default function Event() {
   const topRef = useRef(null);
 
   useEffect(() => {
+    if (showFinishPrompt) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [showFinishPrompt]);
+  useEffect(() => {
     const fetchEvent = async () => {
       const docRef = doc(db, "events", eventId);
       const docSnap = await getDoc(docRef);
