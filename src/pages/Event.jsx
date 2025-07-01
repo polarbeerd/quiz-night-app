@@ -121,6 +121,8 @@ export default function Event() {
           { teamIndex, points, type: "add" },
         ],
       };
+      // Save to Firestore
+      updateDoc(doc(db, "events", eventId), { rounds: updatedRounds });
       flashChange(teamIndex, points, "add");
       return { ...prev, rounds: updatedRounds };
     });
@@ -136,11 +138,12 @@ export default function Event() {
           { teamIndex, points, type: "subtract" },
         ],
       };
+      // Save to Firestore
+      updateDoc(doc(db, "events", eventId), { rounds: updatedRounds });
       flashChange(teamIndex, points, "subtract");
       return { ...prev, rounds: updatedRounds };
     });
   };
-
   const goToNextRound = () => {
     setManualScroll(true);
     setCurrentRound((prev) => prev + 1);
