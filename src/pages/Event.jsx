@@ -108,6 +108,8 @@ export default function Event() {
       return { ...team, score };
     });
   };
+  const finalTeams = calculateFinalTeams();
+  const anyTeamHas100 = finalTeams.some((team) => (team.score ?? 0) >= 100);
   // ...existing code...
   const addPoints = async (teamIndex, points) => {
     setEventData((prev) => {
@@ -231,7 +233,11 @@ export default function Event() {
           </div>
 
           <ScoreTable teams={eventData.teams} rounds={eventData.rounds} />
-
+          {anyTeamHas100 && !eventData.finished && (
+            <div className="my-6 p-4 bg-yellow-100 border-l-4 border-yellow-400 text-yellow-800 rounded shadow text-center text-base font-medium animate-pulse">
+              Etkinliği bitirip kaydetmeyi ve not eklemeyi unutma! <br />
+            </div>
+          )}
           <button
             onClick={() => setShowFinishPrompt(true)}
             className="mt-10 w-full bg-[#EE564C] text-white py-3 rounded-xl text-lg font-semibold hover:bg-opacity-90 shadow-lg flex items-center justify-center gap-2"
