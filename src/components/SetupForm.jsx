@@ -104,7 +104,7 @@ export default function SetupForm() {
         Kaç masa var?
       </label>
       <div className="flex justify-between gap-2 mb-6">
-        {Array.from({ length: 7 }, (_, i) => i + 3).map((num) => (
+        {Array.from({ length: 8 }, (_, i) => i + 3).map((num) => (
           <button
             key={num}
             onClick={() => handleTeamCount(num)}
