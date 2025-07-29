@@ -44,7 +44,10 @@ export default function SetupForm() {
       .map((doc) => ({ id: doc.id, ...doc.data() }))
       .sort((a, b) => b.createdAt - a.createdAt);
 
-    if (events.length >= 50) {
+    const isDemo = localStorage.getItem("demo") === "true";
+    const limit = isDemo ? 5 : 50;
+
+    if (events.length >= limit) {
       const oldestEvent = events[events.length - 1];
       await deleteDoc(doc(eventsRef, oldestEvent.id));
     }
